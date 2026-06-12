@@ -12,25 +12,26 @@ public class TransactionController : ControllerBase
         _service = service;
     }
 
+    [Authorize]
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery(Name = "wallet_id")] string walletId,
+    [FromQuery] string month,
+    [FromQuery] string year)
     {
-        var data = await _service.GetAll();
+        var data = await _service.GetAll(walletId, month, year);
         return Ok(data);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(CreateTransactionDto dto)
-    {
-        var result = await _service.Create(dto);
-        return Ok(result);
     }
 
     [Authorize]
-    [HttpGet("test-db")]
-    public async Task<IActionResult> TestDb()
+    [HttpPost]
+    public async Task<IActionResult> Create(List<CreateTransactionDto> dto)
     {
-        var data = await _service.GetAll(); // ✅ ใช้ service
-        return Ok(data);
+        var userId = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("UserId not found in token");
+        }
+        var result = await _service.Create(dto, userId);
+        return Ok(result);
     }
 }

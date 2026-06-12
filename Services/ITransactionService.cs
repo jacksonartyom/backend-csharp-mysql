@@ -1,5 +1,5 @@
 public interface ITransactionService
 {
-    Task<List<Transaction>> GetAll();
-    Task<Transaction> Create(CreateTransactionDto dto);
+    Task<List<TransactionDashboardResponse>> GetAll(string walletId, string month, string year);
+    Task<List<Transaction>> Create(List<CreateTransactionDto> dto, string userId);
 }

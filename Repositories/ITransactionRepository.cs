@@ -1,5 +1,7 @@
 public interface ITransactionRepository
 {
-    Task<List<Transaction>> GetAll();
-    Task<Transaction> Create(Transaction transaction);
+    Task<List<TransactionDashboardResponse>> FindByWalletId(string walletId, DateTime dateFrom, DateTime dateTo);
+    Task<Transaction?> GetTransactionByTransactionId(string transactionId);
+    Task<List<Transaction>> CreateRange(List<Transaction> transaction);
+    Task<Transaction> Update(Transaction transaction);
 }

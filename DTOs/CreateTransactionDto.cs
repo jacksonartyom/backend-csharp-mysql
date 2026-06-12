@@ -1,7 +1,10 @@
 public class CreateTransactionDto
 {
-    public string name { get; set; } = string.Empty;
-    public decimal amount { get; set; }
-    public string type { get; set; } = string.Empty;
-    public DateTime transactionDate { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Note { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string TransactionDate { get; set; }
+    public string WalletId { get; set; } = string.Empty;
+    public string CategoryId { get; set; } = string.Empty;
 }

@@ -96,7 +96,8 @@ public class UsersService : IUsersService
         {
         new Claim(JwtRegisteredClaimNames.Sub, user.UserId),
         new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        new Claim("name", user.FirstName ?? "")
+        new Claim("name", user.FirstName ?? ""),
+        new Claim("userId", user.UserId ?? "")
     };
 
         var token = new JwtSecurityToken(
