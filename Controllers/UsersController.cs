@@ -11,14 +11,6 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("user")]
-    public IActionResult GetAll()
-    {
-        return Ok(new[] {
-            new { id = 1, name = "John" }
-        });
-    }
-
     [HttpGet("user/{email}")]
     public async Task<IActionResult> GetByEmail(string email)
     {
@@ -28,21 +20,37 @@ public class UsersController : ControllerBase
         }
 
         var user = await _service.GetByEmail(email);
-
-        return Ok(user);
+        var response = new ResponseDto<User>
+        {
+            Message = "Get user by email: Success",
+            Result = user
+        };
+        return Ok(response);
     }
 
     [HttpPost("sign-up")]
     public async Task<IActionResult> CreateUserProfile(CreateUserDto dto)
     {
         var result = await _service.Create(dto);
-        return Ok(result);
+
+        var response = new ResponseDto<User>
+        {
+            Message = "Create User Profile: Success",
+            Result = result
+        };
+        return Ok(response);
     }
 
     [HttpPost("sign-in")]
     public async Task<IActionResult> SignInUserProfile(SignInDto dto)
     {
         var result = await _service.SignIn(dto);
-        return Ok(result);
+
+        var response = new ResponseDto<UserSignInDto>
+        {
+            Message = "Sign In: Success",
+            Result = result
+        };
+        return Ok(response);
     }
 }
