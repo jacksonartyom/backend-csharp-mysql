@@ -21,8 +21,15 @@ public class CategoryController : ControllerBase
         {
             return Unauthorized("UserId not found in token");
         }
-        var data = await _service.GetCategoryByUserId(userId);
-        return Ok(data);
+        var result = await _service.GetCategoryByUserId(userId);
+
+        var response = new ResponseDto<List<Category>>
+        {
+            Message = "Get category: Success",
+            Result = result
+        };
+
+        return Ok(response);
     }
 
     [HttpPost]
@@ -34,7 +41,12 @@ public class CategoryController : ControllerBase
             return Unauthorized("UserId not found in token");
         }
         var result = await _service.CreateCategory(dto, userId);
-        return Ok(result);
+        var response = new ResponseDto<Category>
+        {
+            Message = "Create category: Success",
+            Result = result
+        };
+        return Ok(response);
     }
 
     [Authorize]
@@ -42,8 +54,12 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> Delete(string categoryId)
     {
         var category = await _service.DeleteCategory(categoryId);
-
-        return Ok(category);
+        var response = new ResponseDto<bool>
+        {
+            Message = "Delete category: Success",
+            Result = category
+        };
+        return Ok(response);
     }
 
 }

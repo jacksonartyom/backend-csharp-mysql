@@ -19,7 +19,12 @@ public class TransactionController : ControllerBase
     [FromQuery] string year)
     {
         var data = await _service.GetAll(walletId, month, year);
-        return Ok(data);
+        var response = new ResponseDto<List<TransactionDashboardResponse>>
+        {
+            Message = "Get transaction: Success",
+            Result = data
+        };
+        return Ok(response);
     }
 
     [Authorize]
@@ -32,6 +37,11 @@ public class TransactionController : ControllerBase
             return Unauthorized("UserId not found in token");
         }
         var result = await _service.Create(dto, userId);
-        return Ok(result);
+        var response = new ResponseDto<List<Transaction>>
+        {
+            Message = "Create transaction: Success",
+            Result = result
+        };
+        return Ok(response);
     }
 }

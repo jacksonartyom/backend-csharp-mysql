@@ -1,12 +1,19 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 
 public class TransactionService : ITransactionService
 {
     private readonly ITransactionRepository _repo;
 
-    public TransactionService(ITransactionRepository repo)
+    private readonly IWalletRepository _walletRepo;
+
+    private readonly ILogger<WalletController> _logger;
+
+    public TransactionService(ITransactionRepository repo, IWalletRepository walletRepo, ILogger<WalletController> logger)
     {
         _repo = repo;
+        _walletRepo = walletRepo;
+        _logger = logger;
     }
 
     public async Task<List<TransactionDashboardResponse>> GetAll(
@@ -27,34 +34,66 @@ public class TransactionService : ITransactionService
         var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         var dateNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, thaiTimeZone);
 
-        var transactions = dto.Select(item =>
+        decimal newBalance = 0;
+        string walletId = null;
+
+        var transactions = new List<Transaction>();
+
+        try
         {
-            if (!DateTime.TryParseExact(
-                    item.TransactionDate,
-                    "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.None,
-                    out DateTime date))
+            foreach (var item in dto)
             {
-                throw new Exception($"Invalid date format: {item.TransactionDate}");
+                if (!DateTime.TryParseExact(
+                        item.TransactionDate,
+                        "yyyy-MM-dd",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out DateTime date))
+                {
+                    throw new Exception($"Invalid date format: {item.TransactionDate}");
+                }
+
+                var transaction = new Transaction
+                {
+                    TransactionId = Guid.NewGuid().ToString(),
+                    Name = item.Name,
+                    Amount = item.Amount,
+                    Note = item.Note,
+                    Type = item.Type,
+                    TransactionDate = date,
+                    UserId = userId,
+                    WalletId = item.WalletId,
+                    CategoryId = item.CategoryId,
+                    CreateAt = dateNow,
+                    UpdatedAt = dateNow
+                };
+
+                transactions.Add(transaction);
+
+                walletId = transaction.WalletId;
+
+                if (transaction.Type == "income")
+                {
+                    newBalance += transaction.Amount;
+                }
+                else
+                {
+                    newBalance -= transaction.Amount;
+                }
+            }
+            await _repo.CreateRange(transactions);
+
+            if (!string.IsNullOrEmpty(walletId))
+            {
+                await _walletRepo.UpdateBalance(walletId, newBalance, dateNow);
             }
 
-            return new Transaction
-            {
-                TransactionId = Guid.NewGuid().ToString(),
-                Name = item.Name,
-                Amount = item.Amount,
-                Note = item.Note,
-                Type = item.Type,
-                TransactionDate = date,
-                UserId = userId,
-                WalletId = item.WalletId,
-                CategoryId = item.CategoryId,
-                CreateAt = dateNow,
-                UpdatedAt = dateNow
-            };
-        }).ToList();
-
-        return await _repo.CreateRange(transactions);
+            return transactions;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Transaction can't save");
+        }
     }
+
 }

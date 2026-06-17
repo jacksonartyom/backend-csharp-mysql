@@ -48,4 +48,18 @@ public class WalletRepository : IWalletRepository
 
         return result > 0;
     }
+
+
+    public async Task UpdateBalance(string walletId, decimal amount, DateTime updatedAt)
+    {
+        var wallet = await _context.Wallet.FirstOrDefaultAsync(w => w.WalletId == walletId);
+
+        if (wallet == null)
+            throw new Exception("Wallet not found");
+
+        wallet.Balance += amount;
+        wallet.UpdatedAt = updatedAt;
+
+        await _context.SaveChangesAsync();
+    }
 }

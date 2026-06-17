@@ -46,11 +46,25 @@ public class UsersController : ControllerBase
     {
         var result = await _service.SignIn(dto);
 
-        var response = new ResponseDto<UserSignInDto>
+        if (result.FlagSignIn)
         {
-            Message = "Sign In: Success",
-            Result = result
-        };
-        return Ok(response);
+            var response = new ResponseDto<UserSignInDto>
+            {
+                Message = "Sign In: Success",
+                Result = result
+            };
+            return Ok(response);
+        }
+        else
+        {
+            var response = new ResponseDto<UserSignInDto>
+            {
+                Message = "Sign In: Error",
+                Result = result
+            };
+            return BadRequest(response);
+        }
+
+
     }
 }

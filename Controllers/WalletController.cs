@@ -27,7 +27,12 @@ public class WalletController : ControllerBase
         }
 
         var wallet = await _service.GetWalletByUserId(userId);
-        return Ok(wallet);
+        var response = new ResponseDto<List<Wallet>>
+        {
+            Message = "Get wallet: Success",
+            Result = wallet
+        };
+        return Ok(response);
     }
 
     [Authorize]
@@ -42,8 +47,12 @@ public class WalletController : ControllerBase
         }
 
         var wallet = await _service.CreateWallet(dto, userId);
-
-        return Ok(wallet);
+        var response = new ResponseDto<Wallet>
+        {
+            Message = "Create wallet: Success",
+            Result = wallet
+        };
+        return Ok(response);
     }
 
     [Authorize]
@@ -53,8 +62,12 @@ public class WalletController : ControllerBase
     [FromBody] CreateWalletDto dto)
     {
         var wallet = await _service.UpdateWallet(dto, walletId);
-
-        return Ok(wallet);
+        var response = new ResponseDto<Wallet>
+        {
+            Message = "Update wallet: Success",
+            Result = wallet
+        };
+        return Ok(response);
     }
 
     [Authorize]
@@ -62,7 +75,11 @@ public class WalletController : ControllerBase
     public async Task<IActionResult> DeleteWallet(string walletId)
     {
         var wallet = await _service.DeleteWallet(walletId);
-
-        return Ok(wallet);
+        var response = new ResponseDto<bool>
+        {
+            Message = "Delete wallet: Success",
+            Result = wallet
+        };
+        return Ok(response);
     }
 }
