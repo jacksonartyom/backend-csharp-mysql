@@ -62,4 +62,11 @@ public class WalletRepository : IWalletRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<decimal> SumBalanceByUserId(string userId)
+    {
+        return await _context.Wallet
+            .Where(w => w.UserId == userId)
+            .SumAsync(w => (decimal?)w.Balance) ?? 0;
+    }
 }

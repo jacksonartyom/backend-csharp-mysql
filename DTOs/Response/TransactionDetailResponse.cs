@@ -1,4 +1,5 @@
-public class TransactionDashboardResponse
+using System.Text.Json.Serialization;
+public class TransactionDetailResponse
 {
     public string TransactionId { get; set; } = string.Empty;
     public string WalletId { get; set; } = string.Empty;

@@ -16,13 +16,16 @@ public class UsersService : IUsersService
         _config = config;
     }
 
-    public async Task<List<User>> GetAll()
+    public async Task<UserResponse> Create(CreateUserDto dto)
     {
-        return await _repo.GetAll();
-    }
+        var checkUser = await _repo.GetUserByEmail(dto.Email);
 
-    public async Task<User> Create(CreateUserDto dto)
-    {
+        if (checkUser != null)
+        {
+            throw new BadRequestException("Email already had");
+        }
+
+
         var hasher = new PasswordHasher<User>();
 
         var user = new User
@@ -32,26 +35,36 @@ public class UsersService : IUsersService
             FirstName = dto.FirstName,
             MidName = dto.MidName,
             LastName = dto.LastName,
-            Password = hasher.HashPassword(null, dto.Password),
             PhoneNo = dto.PhoneNo,
             ImageProfile = dto.ImageProfile,
             CreatedAt = DateTime.UtcNow
         };
 
-        return await _repo.Create(user);
+        user.Password = hasher.HashPassword(user, dto.Password);
+
+        await _repo.Create(user);
+
+        var response = new UserResponse
+        {
+            UserId = user.UserId,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            MidName = user.MidName,
+            LastName = user.LastName,
+            PhoneNo = user.PhoneNo,
+            ImageProfile = user.ImageProfile
+        };
+
+        return response;
     }
 
-    public async Task<UserSignInDto> SignIn(SignInDto dto)
+    public async Task<UserResponse> SignIn(SignInDto dto)
     {
         var user = await _repo.GetUserByEmail(dto.Email);
 
         if (user == null)
         {
-            return new UserSignInDto
-            {
-                Email = dto.Email,
-                FlagSignIn = false
-            };
+            throw new BadRequestException("Not found user");
         }
 
         var hasher = new PasswordHasher<User>();
@@ -67,27 +80,37 @@ public class UsersService : IUsersService
 
         if (!isSuccess)
         {
-            return new UserSignInDto
-            {
-                Email = dto.Email,
-                FlagSignIn = false
-            };
+            throw new BadRequestException("Wrong password");
         }
 
         var token = GenerateJwtToken(user);
 
-        return new UserSignInDto
+        var response = new UserResponse
         {
+            UserId = user.UserId,
             Email = user.Email,
-            FlagSignIn = true,
-            Token = token
+            FirstName = user.FirstName,
+            MidName = user.MidName,
+            LastName = user.LastName,
+            PhoneNo = user.PhoneNo,
+            Token = token,
+            ImageProfile = user.ImageProfile
         };
+
+        return response;
     }
 
     public string GenerateJwtToken(User user)
     {
+        var keyString = _config["Jwt:Key"];
+
+        if (string.IsNullOrEmpty(keyString))
+        {
+            throw new Exception("JWT Key is not configured");
+        }
+
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
+            Encoding.UTF8.GetBytes(keyString)
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -111,15 +134,26 @@ public class UsersService : IUsersService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<User> GetByEmail(string email)
+    public async Task<UserResponse> GetByUserId(string userId)
     {
-        var user = await _repo.GetUserByEmail(email);
+        var user = await _repo.GetUserByUserId(userId);
 
         if (user == null)
         {
             throw new Exception("Data not found");
         }
 
-        return user;
+        var response = new UserResponse
+        {
+            UserId = user.UserId,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            MidName = user.MidName,
+            LastName = user.LastName,
+            PhoneNo = user.PhoneNo,
+            ImageProfile = user.ImageProfile
+        };
+
+        return response;
     }
 }

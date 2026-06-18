@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Diagnostics;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
@@ -71,5 +73,42 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var exception = exceptionFeature?.Error;
+
+        context.Response.ContentType = "application/json";
+
+        if (exception is BadRequestException)
+        {
+            context.Response.StatusCode = 400;
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                status = 400,
+                error = "Bad Request",
+                message = exception.Message,
+                timestamp = DateTime.UtcNow
+            });
+
+            return;
+        }
+
+        // fallback
+        context.Response.StatusCode = 500;
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            status = 500,
+            error = "Internal Server Error",
+            message = exception?.Message,
+            timestamp = DateTime.UtcNow
+        });
+    });
+});
 
 app.Run();

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/v1")]
@@ -11,18 +12,20 @@ public class UsersController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("user/{email}")]
-    public async Task<IActionResult> GetByEmail(string email)
+    [Authorize]
+    [HttpGet("user/user-profile")]
+    public async Task<IActionResult> GetByUserId()
     {
-        if (string.IsNullOrEmpty(email))
+        var userId = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userId))
         {
-            return BadRequest("Email is required");
+            return Unauthorized("UserId not found in token");
         }
 
-        var user = await _service.GetByEmail(email);
-        var response = new ResponseDto<User>
+        var user = await _service.GetByUserId(userId);
+        var response = new ResponseDto<UserResponse>
         {
-            Message = "Get user by email: Success",
+            Message = "success",
             Result = user
         };
         return Ok(response);
@@ -33,9 +36,9 @@ public class UsersController : ControllerBase
     {
         var result = await _service.Create(dto);
 
-        var response = new ResponseDto<User>
+        var response = new ResponseDto<UserResponse>
         {
-            Message = "Create User Profile: Success",
+            Message = "success",
             Result = result
         };
         return Ok(response);
@@ -46,24 +49,12 @@ public class UsersController : ControllerBase
     {
         var result = await _service.SignIn(dto);
 
-        if (result.FlagSignIn)
+        var response = new ResponseDto<UserResponse>
         {
-            var response = new ResponseDto<UserSignInDto>
-            {
-                Message = "Sign In: Success",
-                Result = result
-            };
-            return Ok(response);
-        }
-        else
-        {
-            var response = new ResponseDto<UserSignInDto>
-            {
-                Message = "Sign In: Error",
-                Result = result
-            };
-            return BadRequest(response);
-        }
+            Message = "success",
+            Result = result
+        };
+        return Ok(response);
 
 
     }

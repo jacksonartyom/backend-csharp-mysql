@@ -17,13 +17,26 @@ public class WalletService : IWalletService
         _logger = logger;
     }
 
-    public Task<List<Wallet>> GetWalletByUserId(string userId)
+    public async Task<List<WalletResponse>> GetWalletByUserId(string userId)
     {
-        _logger.LogInformation("User in service {userId}", userId);
-        return _repo.GetWalletByUserId(userId);
+        var result = await _repo.GetWalletByUserId(userId);
+        var responseList = new List<WalletResponse>();
+        foreach (var item in result)
+        {
+            var response = new WalletResponse
+            {
+                WalletId = item.WalletId,
+                WalletName = item.WalletName,
+                WalletDetail = item.WalletDetail,
+                Balance = item.Balance,
+                UserId = item.UserId
+            };
+            responseList.Add(response);
+        }
+        return responseList;
     }
 
-    public async Task<Wallet> CreateWallet(CreateWalletDto dto, string userId)
+    public async Task<WalletResponse> CreateWallet(CreateWalletDto dto, string userId)
     {
 
         var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -38,25 +51,45 @@ public class WalletService : IWalletService
             CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, thaiTimeZone)
         };
 
-        return await _repo.Create(wallet);
+        await _repo.Create(wallet);
+
+        var response = new WalletResponse
+        {
+            WalletId = wallet.WalletId,
+            WalletName = wallet.WalletName,
+            WalletDetail = wallet.WalletDetail,
+            Balance = wallet.Balance,
+            UserId = wallet.UserId
+        };
+
+        return response;
     }
 
-    public async Task<Wallet> UpdateWallet(CreateWalletDto dto, string walletId)
+    public async Task<WalletResponse> UpdateWallet(CreateWalletDto dto, string walletId)
     {
 
         var wallet = await _repo.GetWalletByWalletId(walletId);
         if (wallet == null)
         {
-            throw new Exception("Data not found");
+            throw new BadRequestException("Data not found");
         }
         var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
         wallet.WalletName = dto.WalletName;
         wallet.WalletDetail = dto.WalletDetail;
         wallet.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, thaiTimeZone);
+        await _repo.Update(wallet);
 
+        var response = new WalletResponse
+        {
+            WalletId = wallet.WalletId,
+            WalletName = wallet.WalletName,
+            WalletDetail = wallet.WalletDetail,
+            Balance = wallet.Balance,
+            UserId = wallet.UserId
+        };
 
-        return await _repo.Update(wallet);
+        return response;
     }
 
     public async Task<bool> DeleteWallet(string walletId)

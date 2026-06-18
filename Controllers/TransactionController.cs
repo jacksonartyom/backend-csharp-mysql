@@ -18,10 +18,10 @@ public class TransactionController : ControllerBase
     [FromQuery] string month,
     [FromQuery] string year)
     {
-        var data = await _service.GetAll(walletId, month, year);
-        var response = new ResponseDto<List<TransactionDashboardResponse>>
+        var data = await _service.GetByMonthYear(walletId, month, year);
+        var response = new ResponseDto<List<TransactionResponse>>
         {
-            Message = "Get transaction: Success",
+            Message = "success",
             Result = data
         };
         return Ok(response);
@@ -39,7 +39,7 @@ public class TransactionController : ControllerBase
         var result = await _service.Create(dto, userId);
         var response = new ResponseDto<List<Transaction>>
         {
-            Message = "Create transaction: Success",
+            Message = "success",
             Result = result
         };
         return Ok(response);

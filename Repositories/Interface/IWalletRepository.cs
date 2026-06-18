@@ -9,4 +9,5 @@ public interface IWalletRepository
         Task<Wallet> Update(Wallet wallet);
         Task<bool> Delete(string walletId);
         Task UpdateBalance(string walletId, decimal amount, DateTime updatedAt);
+        Task<decimal> SumBalanceByUserId(string userId);
 }

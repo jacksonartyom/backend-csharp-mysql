@@ -17,13 +17,25 @@ public class CategoryService : ICategoryService
         _logger = logger;
     }
 
-    public Task<List<Category>> GetCategoryByUserId(string userId)
+    public async Task<List<CategoryResponse>> GetCategoryByUserId(string userId)
     {
-        _logger.LogInformation("User in service {userId}", userId);
-        return _repo.GetCategoryByUserId(userId);
+        var result = await _repo.GetCategoryByUserId(userId);
+        var responseList = new List<CategoryResponse>();
+        foreach (var item in result)
+        {
+            var response = new CategoryResponse
+            {
+                CategoryId = item.CategoryId,
+                Name = item.Name,
+                Type = item.Type
+            };
+
+            responseList.Add(response);
+        }
+        return responseList;
     }
 
-    public async Task<Category> CreateCategory(CreateCategoryDto dto, string userId)
+    public async Task<CategoryResponse> CreateCategory(CreateCategoryDto dto, string userId)
     {
 
         var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -38,10 +50,19 @@ public class CategoryService : ICategoryService
             CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, thaiTimeZone)
         };
 
-        return await _repo.Create(category);
+        await _repo.Create(category);
+
+        var CategoryResponse = new CategoryResponse
+        {
+            CategoryId = category.CategoryId,
+            Name = category.Name,
+            Type = category.Type
+        };
+
+        return CategoryResponse;
     }
 
-    public async Task<Category> UpdateCategory(CreateCategoryDto dto, string categoryId)
+    public async Task<CategoryResponse> UpdateCategory(CreateCategoryDto dto, string categoryId)
     {
 
         var category = await _repo.GetCategoryByCategoryId(categoryId);
@@ -51,8 +72,16 @@ public class CategoryService : ICategoryService
         }
         category.Name = dto.Name;
         category.Type = dto.Type;
+        await _repo.Update(category);
 
-        return await _repo.Update(category);
+        var categoryResponse = new CategoryResponse
+        {
+            CategoryId = category.CategoryId,
+            Name = category.Name,
+            Type = category.Type
+        };
+
+        return categoryResponse;
     }
 
     public async Task<bool> DeleteCategory(string categoryId)
@@ -60,9 +89,8 @@ public class CategoryService : ICategoryService
         var category = await _repo.GetCategoryByCategoryId(categoryId);
         if (category == null)
         {
-            throw new Exception("Data not found");
+            return false;
         }
-
         return await _repo.Delete(categoryId);
     }
 }

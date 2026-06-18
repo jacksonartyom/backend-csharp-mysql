@@ -23,9 +23,9 @@ public class CategoryController : ControllerBase
         }
         var result = await _service.GetCategoryByUserId(userId);
 
-        var response = new ResponseDto<List<Category>>
+        var response = new ResponseDto<List<CategoryResponse>>
         {
-            Message = "Get category: Success",
+            Message = "success",
             Result = result
         };
 
@@ -41,9 +41,9 @@ public class CategoryController : ControllerBase
             return Unauthorized("UserId not found in token");
         }
         var result = await _service.CreateCategory(dto, userId);
-        var response = new ResponseDto<Category>
+        var response = new ResponseDto<CategoryResponse>
         {
-            Message = "Create category: Success",
+            Message = "success",
             Result = result
         };
         return Ok(response);
@@ -54,12 +54,21 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> Delete(string categoryId)
     {
         var category = await _service.DeleteCategory(categoryId);
-        var response = new ResponseDto<bool>
+        if (category)
         {
-            Message = "Delete category: Success",
-            Result = category
-        };
-        return Ok(response);
+            var response = new ResponseDto<string>
+            {
+                Message = "success",
+                Result = "Delete category success"
+            };
+
+            return Ok(response);
+        }
+        else
+        {
+            return BadRequest(new { message = "Delete category fail" });
+        }
+        ;
     }
 
 }
