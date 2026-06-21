@@ -56,13 +56,13 @@ public class TransactionService : ITransactionService
 
     }
 
-    public async Task<List<Transaction>> Create(List<CreateTransactionDto> dto, string userId)
+    public async Task<List<Transaction>> Create(List<CreateTransactionDto> dto, string? userId)
     {
         var thaiTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         var dateNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, thaiTimeZone);
 
         decimal newBalance = 0;
-        string walletId = null;
+        string? walletId = null;
 
         var transactions = new List<Transaction>();
 
