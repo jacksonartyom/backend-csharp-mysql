@@ -8,6 +8,8 @@ public class WalletResponse
     public string WalletName { get; set; } = string.Empty;
     [JsonPropertyName("wallet_detail")]
     public string WalletDetail { get; set; } = string.Empty;
+
+    [JsonConverter(typeof(DecimalToStringConverter))]
     public decimal Balance { get; set; }
     public string UserId { get; set; } = string.Empty;
 
